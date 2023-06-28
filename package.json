@@ -10,7 +10,7 @@
   "scripts": {
     "start": "node app.js",
     "register": "node commands.js",
-    "dev": "nodemon app.js"
+    "dev": "nodemon && ngrok http 3000"
   },
   "author": "Shay DeWael",
   "license": "MIT",
