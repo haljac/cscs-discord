@@ -2,7 +2,7 @@
   "name": "leetcoders-bot",
   "version": "1.0.0",
   "description": "Discord bot for CSCS Meetup Group",
-  "main": "app.js",
+  "main": "dist/index.js",
   "type": "module",
   "engines": {
     "node": ">=18.0.0"
