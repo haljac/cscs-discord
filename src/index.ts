@@ -1,71 +1,71 @@
-import 'dotenv/config';
 import {
     InteractionType,
     InteractionResponseType,
-    verifyKey,
+    verifyKey
 } from 'discord-interactions';
-import { getRandomEmoji } from './utils';
+import { getRandomEmoji } from './utils.js';
+import type { APIGatewayEvent } from 'aws-lambda';
+
+interface APIGatewayDiscordEvent extends APIGatewayEvent {
+  body: string;
+  headers: {
+    'x-signature-ed25519': string;
+    'x-signature-timestamp': string;
+  }
+}
 
 const CLIENT_KEY = process.env.PUBLIC_KEY as string;
 
 /**
  * Interactions endpoint URL where Discord will send HTTP requests
  */
-export const handler = async (event: any) => {
-    const buf = Buffer.from(event.body, 'base64');
+export const handler = async (event: APIGatewayDiscordEvent) => {
+  const verified = verifyKey(
+    event.body,
+    event.headers['x-signature-ed25519'],
+    event.headers['x-signature-timestamp'],
+    CLIENT_KEY
+  );
 
-    const signature = event.headers['X-Signature-Ed25519'];
-    const timestamp = event.headers['X-Signature-Timestamp'];
-    console.log('headers from discord', signature, timestamp);
+  if (!verified) {
+    return {
+      statusCode: 401,
+      body: JSON.stringify('invalid request signature'),
+    };
+  }
 
-    const isValidRequest = verifyKey(buf, signature!, timestamp!, CLIENT_KEY);
-    if (!isValidRequest) {
-        console.log('request is invalid due to the verifyKey thingy not working');
+  const body = JSON.parse(event.body);
+  const { type, /*id,*/ data } = body;
+  if (event) {
+    switch (type) {
+      case InteractionType.PING:
+        // Return pongs for pings
         return {
-            statusCode: 401,
-            message: "Invalid discord request"
-        };
-    }
-
-    const body = JSON.parse(Buffer.from(event.body, 'base64').toString())
-    // Interaction type and data
-    const { type, /*id, */ data } = body;
-
-    console.log('type', type);
-
-    if (type === InteractionType.PING) {
-        return {
-            statusCode: 200,
-            type: InteractionResponseType.PONG
-        };
-    }
-
-    /**
-    * Handle slash command requests
-    * See https://discord.com/developers/docs/interactions/application-commands#slash-commands
-    */
-    if (type === InteractionType.APPLICATION_COMMAND) {
+          statusCode: 200,
+          body: JSON.stringify({ "type": InteractionResponseType.PONG }),
+        }
+      case InteractionType.APPLICATION_COMMAND:
+        // Actual input request
         const { name } = data;
-
         // "test" command
         if (name === 'test') {
           // Send a message into the channel where command was triggered from
           return {
-            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-            data: {
-              // Fetches a random emoji to send from a helper function
-              content: 'hello world ' + getRandomEmoji(),
-            },
+            statusCode: 200,
+            body: JSON.stringify({
+              type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+              data: {
+                // Fetches a random emoji to send from a helper function
+                content: 'hello world ' + getRandomEmoji(),
+              }
+            }),
           };
-        } else {
-            return {
-                statusCode: 500
-            }
-        }
-    } else {
-        return {
-            statusCode: 500
         }
     }
+  } 
+
+  return {
+    statusCode: 500
+  }
 };
 

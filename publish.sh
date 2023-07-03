@@ -1,5 +1,8 @@
 #!/bin/sh
 
+aws ecr get-login-password --region us-east-1 \
+  | docker login --username AWS --password-stdin 018345072091.dkr.ecr.us-east-1.amazonaws.com
+
 docker build . -t test-lambda:test
 docker tag test-lambda:test 018345072091.dkr.ecr.us-east-1.amazonaws.com/cscs:latest
 docker push 018345072091.dkr.ecr.us-east-1.amazonaws.com/cscs:latest
