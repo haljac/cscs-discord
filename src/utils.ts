@@ -27,6 +27,7 @@ export async function DiscordRequest(endpoint: string, options: Options) {
     throw new Error(JSON.stringify(data));
   }
   // return original response
+  console.log('res', await res.json());
   return res;
 }
 

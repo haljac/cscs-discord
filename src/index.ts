@@ -45,25 +45,37 @@ export const handler = async (event: APIGatewayDiscordEvent) => {
           body: JSON.stringify({ "type": InteractionResponseType.PONG }),
         }
       case InteractionType.APPLICATION_COMMAND:
-        // Actual input request
-        const { name } = data;
-        // "test" command
-        if (name === 'test') {
+        // TODO: ApplicationCommandRouter
+        if (data.name === 'test') {
+          console.log('invoked test command');
           // Send a message into the channel where command was triggered from
           return {
             statusCode: 200,
             body: JSON.stringify({
-              type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-              data: {
-                // Fetches a random emoji to send from a helper function
-                content: 'hello world ' + getRandomEmoji(),
-              }
-            }),
+              "type": InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+              "data": { content: 'hello world ' + getRandomEmoji() }
+            })
           };
+        }
+
+        if (data.name === 'foo') {
+          console.log('invoking foo command');
+          return JSON.stringify({  // Note the absence of statusCode
+            "type": InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,  // This type stands for answer with invocation shown
+            "data": { "content": "bar" }
+          });
+        }
+
+
+        // no handlers for command
+        console.log('returning 404')
+        return {
+          statusCode: 404
         }
     }
   } 
 
+  console.log('returning 500')
   return {
     statusCode: 500
   }
