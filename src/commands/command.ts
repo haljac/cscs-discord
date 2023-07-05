@@ -3,6 +3,8 @@ import {
 } from 'discord-interactions';
 import fetch from 'node-fetch';
 import { checkStatus } from '../errors.js';
+import type { CommandOption } from './index.js';
+
 const DISCORD_HOST = 'https://discord.com/';
 
 interface InteractionResponse {
@@ -29,7 +31,7 @@ export default abstract class Command {
     this.callbackUrl = new URL(DISCORD_HOST);
   }
 
-  abstract init(): Promise<void>;
+  abstract init(options?: CommandOption[]): Promise<void>;
 
   async run(id: string, token: string) {
     this.callbackUrl.pathname = `/api/v10/interactions/${id}/${token}/callback`

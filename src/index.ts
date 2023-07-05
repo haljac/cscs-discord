@@ -35,7 +35,7 @@ export const handler: Handler = async (event: APIGatewayDiscordEvent) => {
   }
 
   const body = JSON.parse(event.body);
-  const { type, /*id,*/ data } = body;
+  const { type, id, token, data } = body;
   if (event) {
     switch (type) {
       case InteractionType.PING:
@@ -45,9 +45,7 @@ export const handler: Handler = async (event: APIGatewayDiscordEvent) => {
           body: JSON.stringify({ "type": InteractionResponseType.PONG }),
         }
       case InteractionType.APPLICATION_COMMAND:
-        const { id, token } = body;
-
-        const command = await route(data.name)
+        const command = await route(data.name, data.options)
         if (command) {
           await command.run(id, token);
 
@@ -63,7 +61,6 @@ export const handler: Handler = async (event: APIGatewayDiscordEvent) => {
     }
   } 
 
-  console.log('returning 500')
   return {
     statusCode: 500
   }

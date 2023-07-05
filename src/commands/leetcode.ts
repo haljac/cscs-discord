@@ -2,8 +2,8 @@ import {
     InteractionResponseType,
 } from 'discord-interactions';
 import { DynamoDBClient, ScanCommand } from '@aws-sdk/client-dynamodb';
-import { getRandomEmoji } from '../utils.js'
-
+import { normalizeDynamoDBItem, getRandomEmoji } from '../utils.js'
+import type { CommandOption } from './index.js';
 import Command from './command.js'
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
@@ -17,8 +17,8 @@ export default class LeetCode extends Command {
     }
   }
 
-  async init() {
-    const command = new ScanCommand({
+  async init(options?: CommandOption[]) {
+    const commandOptions = {
     ExpressionAttributeNames: {
         '#u': 'url',
         '#n': 'name',
@@ -32,21 +32,34 @@ export default class LeetCode extends Command {
       FilterExpression: '#d = :s',
       ProjectionExpression: '#i, #n, #d, #p, #u',
       TableName: 'cscs-problems',
-    });
+    }
+
+    if (options && options.length) {
+      for (const option of options) {
+        switch (option.name) {
+          case 'difficulty':
+            commandOptions.ExpressionAttributeValues[':s'] = { S: option.value };
+            break;
+          default:
+            throw new Error(`invalid option '${option.name}' received`);
+        }
+      }
+    }
+
+    const command = new ScanCommand(commandOptions);
 
     const { Items } = await client.send(command);
 
-    console.log(Items![0]);
+    if (!Items || !Items.length) throw new Error('whoops! could not fetch problem');
 
-    if (Items) {
-      this.body = {
-        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-        data: {
-          content: `Here's your ${Items[0]?.difficulty} leetcode problem! ${Items[0]?.url} ${getRandomEmoji()}`,
-        }
+    const randomIndex = Math.floor(Math.random() * Items.length);
+    const item = normalizeDynamoDBItem(Items?.[randomIndex]);
+
+    this.body = {
+      type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+      data: {
+        content: `Here's your ${item?.difficulty} leetcode problem! ${item?.url} ${getRandomEmoji()}`,
       }
-    } else {
-      throw new Error('whoops! could not fetch problem');
     }
   }
 }

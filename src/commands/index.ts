@@ -5,8 +5,14 @@ const commands = {
   'leetcode': Leetcode
 }
 
-export const route = async (name: keyof typeof commands/*, interaction: any*/): Promise<Command> => {
+export interface CommandOption {
+  name: string;
+  type: number;
+  value: string;
+}
+
+export const route = async (name: keyof typeof commands, options?: CommandOption[]): Promise<Command> => {
   const command = new commands[name]();
-  await command.init() // interaction can be passed here for subcommands
+  await command.init(options) // interaction can be passed here for subcommands
   return command;
 }
