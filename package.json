@@ -9,12 +9,13 @@
   },
   "scripts": {
     "build": "tsc",
-    "register": "ts-node --esm src/commands.ts",
+    "register": "ts-node --esm src/commands/register.ts",
     "dev": "nodemon && ngrok http 3000"
   },
   "author": "halja7 (Jack Hall)",
   "license": "MIT",
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.363.0",
     "discord-interactions": "^3.4.0",
     "dotenv": "^16.0.3",
     "node-fetch": "^3.3.0"

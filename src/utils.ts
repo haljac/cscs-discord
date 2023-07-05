@@ -27,6 +27,7 @@ export async function DiscordRequest(endpoint: string, options: Options) {
     throw new Error(JSON.stringify(data));
   }
   // return original response
+  console.log('res', await res.json());
   return res;
 }
 
@@ -50,4 +51,13 @@ export function getRandomEmoji() {
 
 export function capitalize(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+export function normalizeDynamoDBItem(item: Record<string, any>) {
+  const result: Record<string, any> = {};
+  for (const key in item) {
+    result[key] = item[key]['S']
+  }
+
+  return result;
 }

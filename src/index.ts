@@ -3,8 +3,8 @@ import {
     InteractionResponseType,
     verifyKey
 } from 'discord-interactions';
-import { getRandomEmoji } from './utils.js';
-import type { APIGatewayEvent } from 'aws-lambda';
+import { route } from './commands/index.js'
+import type { Handler, APIGatewayEvent } from 'aws-lambda';
 
 interface APIGatewayDiscordEvent extends APIGatewayEvent {
   body: string;
@@ -19,7 +19,7 @@ const CLIENT_KEY = process.env.PUBLIC_KEY as string;
 /**
  * Interactions endpoint URL where Discord will send HTTP requests
  */
-export const handler = async (event: APIGatewayDiscordEvent) => {
+export const handler: Handler = async (event: APIGatewayDiscordEvent) => {
   const verified = verifyKey(
     event.body,
     event.headers['x-signature-ed25519'],
@@ -35,7 +35,7 @@ export const handler = async (event: APIGatewayDiscordEvent) => {
   }
 
   const body = JSON.parse(event.body);
-  const { type, /*id,*/ data } = body;
+  const { type, id, token, data } = body;
   if (event) {
     switch (type) {
       case InteractionType.PING:
@@ -45,21 +45,18 @@ export const handler = async (event: APIGatewayDiscordEvent) => {
           body: JSON.stringify({ "type": InteractionResponseType.PONG }),
         }
       case InteractionType.APPLICATION_COMMAND:
-        // Actual input request
-        const { name } = data;
-        // "test" command
-        if (name === 'test') {
-          // Send a message into the channel where command was triggered from
+        const command = await route(data.name, data.options)
+        if (command) {
+          await command.run(id, token);
+
           return {
-            statusCode: 200,
-            body: JSON.stringify({
-              type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-              data: {
-                // Fetches a random emoji to send from a helper function
-                content: 'hello world ' + getRandomEmoji(),
-              }
-            }),
-          };
+            statusCode: 200
+          }
+        } else {
+          // no handlers
+          return {
+            statusCode: 404
+          }
         }
     }
   } 
