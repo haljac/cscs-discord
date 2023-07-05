@@ -2,9 +2,9 @@ import 'dotenv/config';
 import fetch from 'node-fetch';
 
 type Options = {
-    body: any
-    method: string
-}
+  body: any;
+  method: string;
+};
 
 export async function DiscordRequest(endpoint: string, options: Options) {
   // append endpoint to root API URL
@@ -16,9 +16,10 @@ export async function DiscordRequest(endpoint: string, options: Options) {
     headers: {
       Authorization: `Bot ${process.env.DISCORD_TOKEN}`,
       'Content-Type': 'application/json; charset=UTF-8',
-      'User-Agent': 'DiscordBot (https://github.com/discord/discord-example-app, 1.0.0)',
+      'User-Agent':
+        'DiscordBot (https://github.com/discord/discord-example-app, 1.0.0)',
     },
-    ...options
+    ...options,
   });
   // throw API errors
   if (!res.ok) {
@@ -45,7 +46,22 @@ export async function InstallGlobalCommands(appId: string, commands: any) {
 
 // Simple method that returns a random emoji from list
 export function getRandomEmoji() {
-  const emojiList = ['😭','😄','😌','🤓','😎','😤','🤖','😶‍🌫️','🌏','📸','💿','👋','🌊','✨'];
+  const emojiList = [
+    '😭',
+    '😄',
+    '😌',
+    '🤓',
+    '😎',
+    '😤',
+    '🤖',
+    '😶‍🌫️',
+    '🌏',
+    '📸',
+    '💿',
+    '👋',
+    '🌊',
+    '✨',
+  ];
   return emojiList[Math.floor(Math.random() * emojiList.length)];
 }
 
@@ -56,7 +72,7 @@ export function capitalize(str: string) {
 export function normalizeDynamoDBItem(item: Record<string, any>) {
   const result: Record<string, any> = {};
   for (const key in item) {
-    result[key] = item[key]['S']
+    result[key] = item[key]['S'];
   }
 
   return result;
