@@ -1,9 +1,9 @@
 import {
-    InteractionType,
-    InteractionResponseType,
-    verifyKey
+  InteractionType,
+  InteractionResponseType,
+  verifyKey,
 } from 'discord-interactions';
-import { route } from './commands/index.js'
+import { route } from './commands/index.js';
 import type { Handler, APIGatewayEvent } from 'aws-lambda';
 
 interface APIGatewayDiscordEvent extends APIGatewayEvent {
@@ -11,7 +11,7 @@ interface APIGatewayDiscordEvent extends APIGatewayEvent {
   headers: {
     'x-signature-ed25519': string;
     'x-signature-timestamp': string;
-  }
+  };
 }
 
 const CLIENT_KEY = process.env.PUBLIC_KEY as string;
@@ -24,7 +24,7 @@ export const handler: Handler = async (event: APIGatewayDiscordEvent) => {
     event.body,
     event.headers['x-signature-ed25519'],
     event.headers['x-signature-timestamp'],
-    CLIENT_KEY
+    CLIENT_KEY,
   );
 
   if (!verified) {
@@ -37,32 +37,33 @@ export const handler: Handler = async (event: APIGatewayDiscordEvent) => {
   const body = JSON.parse(event.body);
   const { type, id, token, data } = body;
   if (event) {
+    let command;
     switch (type) {
       case InteractionType.PING:
         // Return pongs for pings
         return {
           statusCode: 200,
-          body: JSON.stringify({ "type": InteractionResponseType.PONG }),
-        }
+          body: JSON.stringify({ type: InteractionResponseType.PONG }),
+        };
       case InteractionType.APPLICATION_COMMAND:
-        const command = await route(data.name, data.options)
+        command = await route(data.name, data.options);
+
         if (command) {
           await command.run(id, token);
 
           return {
-            statusCode: 200
-          }
+            statusCode: 200,
+          };
         } else {
           // no handlers
           return {
-            statusCode: 404
-          }
+            statusCode: 404,
+          };
         }
     }
-  } 
+  }
 
   return {
-    statusCode: 500
-  }
+    statusCode: 500,
+  };
 };
-

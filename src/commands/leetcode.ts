@@ -1,10 +1,8 @@
-import {
-    InteractionResponseType,
-} from 'discord-interactions';
+import { InteractionResponseType } from 'discord-interactions';
 import { DynamoDBClient, ScanCommand } from '@aws-sdk/client-dynamodb';
-import { normalizeDynamoDBItem, getRandomEmoji } from '../utils.js'
+import { normalizeDynamoDBItem, getRandomEmoji } from '../utils.js';
 import type { CommandOption } from './index.js';
-import Command from './command.js'
+import Command from './command.js';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 
@@ -13,18 +11,18 @@ export default class LeetCode extends Command {
     super('leetcode');
     this.body = {
       type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-      data: { content: '' }
-    }
+      data: { content: '' },
+    };
   }
 
   async init(options?: CommandOption[]) {
     const commandOptions = {
-    ExpressionAttributeNames: {
+      ExpressionAttributeNames: {
         '#u': 'url',
         '#n': 'name',
         '#d': 'difficulty',
         '#p': 'pattern',
-        '#i': 'id'
+        '#i': 'id',
       },
       ExpressionAttributeValues: {
         ':s': { S: 'Medium' },
@@ -32,13 +30,15 @@ export default class LeetCode extends Command {
       FilterExpression: '#d = :s',
       ProjectionExpression: '#i, #n, #d, #p, #u',
       TableName: 'cscs-problems',
-    }
+    };
 
     if (options && options.length) {
       for (const option of options) {
         switch (option.name) {
           case 'difficulty':
-            commandOptions.ExpressionAttributeValues[':s'] = { S: option.value };
+            commandOptions.ExpressionAttributeValues[':s'] = {
+              S: option.value,
+            };
             break;
           default:
             throw new Error(`invalid option '${option.name}' received`);
@@ -50,7 +50,8 @@ export default class LeetCode extends Command {
 
     const { Items } = await client.send(command);
 
-    if (!Items || !Items.length) throw new Error('whoops! could not fetch problem');
+    if (!Items || !Items.length)
+      throw new Error('whoops! could not fetch problem');
 
     const randomIndex = Math.floor(Math.random() * Items.length);
     const item = normalizeDynamoDBItem(Items?.[randomIndex]);
@@ -58,8 +59,10 @@ export default class LeetCode extends Command {
     this.body = {
       type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
       data: {
-        content: `Here's your ${item?.difficulty} leetcode problem! ${item?.url} ${getRandomEmoji()}`,
-      }
-    }
+        content: `Here's your ${item?.difficulty} leetcode problem! ${
+          item?.url
+        } ${getRandomEmoji()}`,
+      },
+    };
   }
 }

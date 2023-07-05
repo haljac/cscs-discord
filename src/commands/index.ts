@@ -1,9 +1,9 @@
 import type Command from './command.js';
-import Leetcode from './leetcode.js'
+import Leetcode from './leetcode.js';
 
 const commands = {
-  'leetcode': Leetcode
-}
+  leetcode: Leetcode,
+};
 
 export interface CommandOption {
   name: string;
@@ -11,8 +11,11 @@ export interface CommandOption {
   value: string;
 }
 
-export const route = async (name: keyof typeof commands, options?: CommandOption[]): Promise<Command> => {
+export const route = async (
+  name: keyof typeof commands,
+  options?: CommandOption[],
+): Promise<Command> => {
   const command = new commands[name]();
-  await command.init(options) // interaction can be passed here for subcommands
+  await command.init(options); // interaction can be passed here for subcommands
   return command;
-}
+};
